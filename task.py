@@ -21,6 +21,13 @@ async def read_folder(path: AsyncPath):
         await copy_file(outdir_path, path)
 
 
+async def dir_exists(path: AsyncPath, dir_to_copy: str) -> bool:
+    async for entry in path.iterdir():
+        if entry.name == dir_to_copy and await entry.is_dir():
+            return True
+    return False
+
+
 async def copy_file(path: AsyncPath, file_name: AsyncPath):
     if not await path.exists():
         try:
@@ -35,20 +42,16 @@ async def copy_file(path: AsyncPath, file_name: AsyncPath):
     dir_to_copy = AsyncPath(ext)
     directory = AsyncPath(str(path.name) + "/" + ext)
 
-    # for p in path.iterdir:
-    # print(path.iterdir())
-    # yield (path.iterdir())
+    if not await dir_exists(path, dir_to_copy):
+        try:
+            await directory.mkdir(parents=False, exist_ok=True)
+        except:
+            return "It is impossible to create this directory"
 
-    # if dir_to_copy not in path.iterdir():
-    #     try:
-    #         await directory.mkdir(parents=False, exist_ok=True)
-    #     except:
-    #         return "It is impossible to create this directory"
-
-    # try:
-    #     copyfile(file_name, directory)
-    # except:
-    #     return f"It is not possible to copy {file_name} to {directory}"
+    try:
+        await copyfile(file_name, directory / file_name.name)
+    except:
+        return f"It is not possible to copy {file_name} to {directory}"
 
 
 async def main():
